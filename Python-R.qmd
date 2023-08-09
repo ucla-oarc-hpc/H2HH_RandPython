@@ -1,0 +1,643 @@
+---
+title: "Hoffman2 Happy Hour: R and Python"
+author: "Charles Peterson"
+data: "July 19, 2023"
+format: 
+  revealjs: 
+    transition: slide
+    theme: simple
+    scrollable: true
+    self-contained: true
+editor_options: 
+  markdown: 
+    wrap: 72
+from: markdown+emoji
+---
+
+## :wave: :wave: Welcome! :bulb: 
+
+::: {style="font-size: 0.80em" }
+
+In this workshop, we will go over how to use R and Python on Hoffman2
+
+:::
+:::: {.columns .fragment}
+::: {.column width="60%"}
+::: {style="font-size: 0.80em" }
+
+We will explore:
+
+- Using R and Python
+- Installing Packages
+- Basic Anaconda
+- Jupyter and RStudio
+- :love_letter: Suggestions and Feedback, Email
+[cpeterson\@oarc.ucla.edu](mailto:cpeterson@oarc.ucla.edu){.email}
+
+:::
+:::
+::: {.column width="40%"}
+::: {style="text-align: center"}
+
+<img src="fullpic.png"/ width="50%">
+
+:::
+:::
+::::
+
+## :open_book: Access the Workshop Files
+
+::: {style="font-size: 0.80em" }
+
+This presentation and accompanying materials are available on :link: [UCLA OARC GitHub Repository](https://github.com/ucla-oarc-hpc/H2HH_R-Python)
+
+You can view the slides in:
+
+- :page_facing_up: PDF format - Python-R.pdf
+- :globe_with_meridians: HTML format: [Workshop Slides](https://ucla-oarc-hpc.github.io/H2HH_Python-R)
+
+Each file provides detailed instructions and examples on the various topics covered in this workshop.
+
+> **Note:** 🛠️ This presentation was built using [Quarto](https://quarto.org/) and RStudio.
+
+:::
+
+# :snake: Running Python on Hoffman2
+
+## :snake: Python
+
+::: {style="font-size: 0.70em" }
+
+Hoffman2 supports running :snake: Python applications. 
+
+It is **HIGHLY** recommended to use a version of python that has been built and tested by Hoffman2 staff. 
+
+These versions of python can be accessed by using `module load` commands. This means that using system python builds (i.e. /usr/bin/python) are NOT recommended
+
+- See all versions of Python installed on Hoffman2
+
+```{.bash}
+modules_lookup -m python
+```
+
+- Load a Python module
+
+```{.bash}
+module load python/3.7.3
+which python3
+```
+
+- This example shown: 
+  - Python version 3.7.3 
+  - Location of python
+    - `/u/local/apps/python/3.7.3/gcc-4.8.5/bin/python3`
+    -  Location of the Hoffman2 installed python
+
+:::
+
+## Running Python on Hoffman2
+
+::: {style="font-size: 0.70em" }
+
+Once you load the Python module, you can run Python with either an interactive (qrsh) or Batch job (qsub)
+
+### Interactive session
+
+Get access to a compute node and load python module 
+
+```{.bash}
+qrsh -l h_data=10G
+module load python/3.7.3
+```
+
+Run Python
+
+:::: {.columns}
+
+::: {.column width="30%"}
+
+- Start a python session
+
+```{.bash}
+python3
+```
+:::
+
+::: {.column width="30%"}
+- Run a python single command
+
+```{.bash}
+python3 -c "a = 1 + 3 ; print(a)"
+```
+:::
+
+::: {.column width="30%"}
+- Run a Python file
+
+```{.bash}
+python3 foo.py
+```
+:::
+
+::::
+
+::: {.callout-note}
+
+If you are using Hoffman2 build python, like most python builds from source,  when using Python version 3.x, the command is `python3` while version 2.7 is `python`
+
+:::
+
+:::
+
+## Running Python
+
+### Batch job
+
+::: {style="font-size: 0.85em" }
+
+You can create a job script to run python as a Batch job
+
+For example, we create a job script, named `foopy.job`
+
+```{.bash}
+#!/bin/bash
+#$ -cwd
+#$ -o joblog.$JOB_ID
+#$ -j y
+#$ -l h_rt=1:00:00,h_data=10G
+#$ -pe shared 1
+
+# load the job environment:
+. /u/local/Modules/default/init/modules.sh
+module load python/3.7.3
+
+python3 foo.py
+```
+
+Then we will submit this job
+
+```{.bash}
+qsub foopy.job
+```
+
+:::
+
+## Python Package Installation
+
+::: {style="font-size: 0.85em" }
+
+The builds of Python on Hoffman2 ONLY have the basic compiler/interpreter and a few basic packages.
+
+- Most python application will need to installed by the user
+  - Pandas, SciPy, Scikit-learn, and TensorFlow, etc. 
+
+- Hoffman2 staff do NOT install packages into the python builds that are supported. 
+  - This can cause conflicts with different packages
+
+:::
+
+## User installed packages
+
+::: {style="font-size: 0.75em" }
+
+- Users are also not able to install packages in the main Python build directories. 
+  - This is because of packages of different versions can cause conflicts with other package dependencies, causing Python to break and unusable.
+
+- While users do not install packages into the main Python build directories, users may install packages into their own directories 
+  - $HOME, $SCRATCH, or any Project directories. 
+  
+- There are a few ways a user can accomplish this.
+  - Using pip package manager
+  - Using  Python Virtual Environments
+  - Using anaconda
+
+:::
+
+## Using pip package manager
+
+::: {style="font-size: 0.85em" }
+
+If you would like to use the package, scikit-learn, you can install this package via the pip (PyPI) package manager.
+
+```{.bash}
+module load python/3.7.3
+pip3 install scikit-learn --user
+```
+
+You will notice the `--user` flag on pip3. Is will ensure that you will install the package in your $HOME directory. 
+
+Normally, pip will try to install in the main Python build, in which, users do not have write access and you may see errors when building your package. When using `--user` by default, it will install it in $HOME/.local.
+
+:::
+
+## Installing with pip
+
+::: {style="font-size: 0.80em" }
+
+If you want to install this package in another directory, you can install this package in any directory you have write access. 
+
+For example, if you want to install this package in $SCRATCH/python-pkg,
+
+```{.bash}
+module load python/3.7.3
+pip3 install scikit-learn -t $SCRATCH/python-pkg
+export PYTHONPATH=$SCRATCH/python-pkg:$PYTHONPATH
+```
+
+When running your jobs, will will have to make sure that the variable $PYTHONPATH is updated to have any custom locations of your packages.
+
+::: {.callout-warning}
+
+Users will need be aware when they are installing multiple packages in $HOME/.local with pip3 `--user`. 
+
+Installing conflicting packages with different versions of python will let to errors. 
+
+When working on different projects, it it best to use Virtual Environment or Anaconda to install python packages and dependencies.
+
+:::
+:::
+
+
+## Python Virtual Environment
+
+::: {style="font-size: 0.80em" }
+
+One great way to manage your  Python packages is using Python's **Virtual Environment** feature. This will allow users to install and manage  Python inside an environment that they control and is located in their own directories. It is an isolated runtime environment so user can set unique versions and dependencies of applications. 
+
+This is good when you are running multiple applications that requires different application environments.
+
+:::
+
+## Creating a Virtual Environment
+
+::: {style="font-size: 0.80em" }
+
+To create a environment, you will first load the base :snake: Python version on Hoffman2 you want to use. For example, if you want to use python/3.7.3:
+
+```{.bash}
+module load python/3.7.3
+```
+
+Then create a directory location you want to install the env.
+
+```{.bash}
+mkdir -pv $HOME/myenv
+python3 -m venv $HOME/myenv/mypython3.7.3
+```
+
+This will create an env named mypython3.7.3. Once it is created, you can activate the env by:
+
+```{.bash}
+source $HOME/myenv/mypython3.7.3/bin/activate
+```
+
+This is a bash shell script that will active your new python environment. From here, you can managing packages with pip or and other installtion method.
+
+:::
+
+## Virtual Environment
+
+::: {.callout-note}
+
+Since this is a new, custom python env that you created, you don't need to add `--user` flags in pip. All new libraries and packages will be installed by default inside the new environment ($HOME/myenv/mypython3.7.3)
+
+More information about using :snake: Python Virtual Environments can be found [here](https://docs.python.org/3/tutorial/venv.html)
+
+:::
+
+::: {.callout-tip}
+
+For python version 3.x, the commands `python` and `python3` are the same in virtual environments
+
+You can run `which python` and `which python3` to make sure you are running the python in the correct location
+
+:::
+
+# R on Hoffman2
+
+## Setting up R
+
+::: {style="font-size: 0.90em" }
+
+Hoffman2 supports running R applications. 
+
+You can see all the available version of R on Hoffman2 by running:
+
+```{.bash}
+modules_lookup -m R
+```
+
+Then you can load R 
+
+```{.bash}
+module load R/4.2.2
+```
+
+It order to use the correct build of R, they will need to have gcc or intel modules loaded first, based on what was shown by `modules_lookup`. This will ensure the gcc and intel libraries and the correct version is correctly loaded.
+
+:::
+
+## Running R on Hoffman2
+
+::: {style="font-size: 0.85em" }
+
+Once you load the R module, you can run R with either an interactive (qrsh) or Batch job (qsub)
+
+### Interactive session
+
+Get access to a compute node
+
+```{.bash}
+qrsh -l h_data=10G
+```
+
+Load python module
+
+```{.bash}
+module load R/4.2.2
+```
+
+Run R
+
+:::: {.columns}
+
+::: {.column width="30%"}
+
+- Start a R session
+
+```{.bash}
+R
+```
+:::
+
+::: {.column width="30%"}
+- Run a R single command
+
+```{.bash}
+R -e "a = 1 +3 ; print(a)"
+```
+:::
+
+::: {.column width="30%"}
+- Run a R file
+
+```{.bash}
+R CMD BATCH fooR.R
+Rscript fooR.R
+```
+:::
+
+::::
+:::
+
+## Running R
+
+### Batch job
+
+::: {style="font-size: 0.85em" }
+
+You can create a job script to run R as a Batch job
+
+For example, we create a job script, named `fooR.job`
+
+```{.bash}
+#!/bin/bash
+#$ -cwd
+#$ -o joblog.$JOB_ID
+#$ -j y
+#$ -l h_rt=1:00:00,h_data=10G
+#$ -pe shared 1
+
+# load the job environment:
+. /u/local/Modules/default/init/modules.sh
+
+module load R/4.2.2
+
+R CMD BATCH fooR.R
+```
+
+Then we will submit this job
+
+```{.bash}
+qsub fooR.job
+```
+
+:::
+
+
+## R package installation
+
+::: {style="font-size: 0.75em" }
+
+When installing R packages, a common way is to use
+
+```{.bash}
+install.packages('PKG_name')
+```
+
+Typically, when you run R, it will install the new packages in the main R global directory. Though, on Hoffman2 (and other :computer: HPC resources), you will not be able to modify this directory. 
+
+Example install:
+
+```{.R}
+install.packages("dplyr")
+```
+
+- R will prompt you with a new path that will be located in your $HOME directory. This directory path is determined by the $R_LIBS_USER. 
+
+- Each R module on Hoffman2 has a unquie $R_LIBS_USER to avoid conflicts when using different versions of R.
+
+- R may also ask you to select a CRAN mirror. You can choose `1` to use the CRAN https cloud server
+
+:::
+
+## Common Errors
+
+::: {style="font-size: 0.70em" }
+
+Sometimes R can error during the installing process. R can output a lot of output during the install.packages() step. 
+
+This output can be very long, though, looking though this output can give you clues to what you need to do to fix it.
+
+Look for lines that look like C/C++ errors, lines that have 'ERROR, or 'no such file or directory'.
+
+For example, the R package 'glmnet' will error when using the R/4.2.2 module with no gcc module, since it will use the default gcc 4.8.5 version that is too old for the 'glmnet' package.
+
+The message will say "Error: C++17 standard requested but CXX17 is not defined". Where you will need a version of gcc that uses at least a C++17 standand. 
+
+To fix this, you can use R/4.2.2 with gcc version 10.2.0
+
+```{.bash}
+module load gcc/10.2.0
+module load R/4.2.2
+```
+
+:::
+
+## External packages
+
+::: {style="font-size: 0.70em" }
+
+When installing packages, you may need to add external software and libraries to successfully install the package.
+
+For example, if you need to install the `nloptr` package, you will need to have the `nlopt` libraries already installed and loaded in your shell session. On Hoffman2, we already have this library and you will need to load the module before you try to install the package
+
+If you run
+
+```{.R}
+install.packages("nloptr")
+```
+
+You may see an error line
+
+```{.bash}
+g++: error: nlopt/lib/libnlopt.a: No such file or directory
+```
+
+To fix this, you will load the nlopt module with R
+
+```{.bash}
+module load nlopt
+module load gcc/10.2.0
+module load R/4.2.2
+```
+
+:::
+
+## R package location
+
+::: {style="font-size: 0.80em" }
+
+Sometimes you will what to use a different directory location to install your packages. Maybe you are running low in your $HOME directory to you have group space with large storage space. You can update `.libPaths()` to have a directory location to install and find your R packages
+
+```{.R}
+# Assign the current library paths to a variable
+current_paths <- .libPaths()
+
+# Append the new directory to the library paths
+new_library_path <- "/path/to/new/library"
+updated_paths <- c(current_paths, new_library_path)
+
+# Update the library search paths
+.libPaths(updated_paths)
+```
+
+If you decided to use this new directory to store you R packages, make sure that you have all your R scripted updated to find this directory everytime you run R.
+
+:::
+
+# Using Anaconda
+
+## Anaconda
+
+::: {style="font-size: 0.80em" }
+
+Anaconda is a very popular :snake: Python and R distribution. This is a great option for simplifing package management and piplines. Hoffman2 does have Anaconda installed, from which, the user can create their own conda environments.
+
+TO create a environment, you will first need to load the Anaconda module
+
+```{.bash}
+module load anaconda3/2020.11
+```
+
+This will load anaconda into your env. There is NO need to load a python module, since you will create and run python in your local environment.
+
+::: {.callout-note}
+
+There is NO need to run conda init. Anaconda is environment is already load when you run the conda.sh script. When you run conda init, it will modify your .bashrc file and possibly break your created env.
+
+:::
+:::
+
+## Creating a Conda Environment
+
+::: {style="font-size: 0.75em" }
+
+After you load anaconda, you will now create your new environment
+
+```{.bash}
+conda create --name mypython3.7 python=3.7
+conda activate mypython3.7
+```
+
+This will create a python env, version 3.7, with the name mypython3.7. Then it will activate the new environment. From here you can install any package you want with conda install or pip install. Do NOT user ``--user` with pip in this case. You want the package to install in the conda env, not in $HOME/.local
+
+```{.bash}
+conda activate mypython3.7
+conda install scipy=0.15.0
+pip install matplotlib
+```
+
+By default, conda envs are install in $HOME/.conda directories. You can create env in other directories by
+
+```{.bash}
+conda create -p $SCRATCH/mypython python=3.7
+conda active $SCRATCH/mypython
+```
+
+This will install the conda env in a custom location. You can install your conda env in a shared PROJECT directory so they can be shared with other users.
+
+For more information, we had done a workshop on using [Anaconda on Hoffman2](https://github.com/ucla-oarc-hpc/H2HH_anaconda) that you can review.
+
+:::
+
+# Jupyter and Rstudio
+
+## :notebook_with_decorative_cover: Jupyter on Hoffman2
+
+::: { style="font-size: 0.75em" }
+
+Jupyter can be executed on Hoffman2. This process involves running the `jupyter notebook/lab` command on a Hoffman2 node, forwarding the Jupyter port to your local machine, and accessing Jupyter via your local web browser.
+
+However, for a more streamlined experience, we have created a script, `h2jupynb`, which automatically creates a Jupyter session on a Hoffman2 compute node.
+
+- Download h2jupynb
+
+```{.bash}
+wget https://raw.githubusercontent.com/rdauria/jupyter-notebook/main/h2jupynb
+chmod u+x h2jupynb
+```
+
+- Run jupyter
+
+```{.bash}
+python h2jupynb -u joebruin -t 5 -m 10
+```
+
+::: 
+
+More information can be found on [our website](https://www.hoffman2.idre.ucla.edu/Using-H2/Connecting/Connecting.html#connecting-via-jupyter-notebook-lab)
+
+## :bar_chart: RStudio on Hoffman2
+
+::: { style="font-size: 0.70em" }
+
+You can conveniently interact with Hoffman2 using RStudio Server, allowing you to utilize R in a familiar, intuitive environment.
+
+Find detailed instructions for using RStudio on Hoffman2 on our [GitHub page](https://github.com/ucla-oarc-hpc/H2-RStudio)
+
+We've also conducted a dedicated workshop on using [Rstudio on Hoffman2](https://github.com/ucla-oarc-hpc/H2HH_rstudio). Feel free to explore this resource for additional insights and usage tips.
+
+![](rstudio_script.gif)
+
+:::
+
+
+# :clap: Thanks for Joining! :heart:
+
+::: { style="font-size: 0.70em" }
+
+Questions? Comments?
+
+- [cpeterson\@oarc.ucla.edu](mailto:cpeterson@oarc.ucla.edu){.email}
+
+- Look at for more Hoffman2 workshops at [https://idre.ucla.edu/calendar ](https://idre.ucla.edu/calendar)
+
+- Fill our [assessment form]( https://docs.google.com/forms/d/e/1FAIpQLSckQrdAPZfzI49oTeSBjBPd2oehNoovCzxhBbA6roLu0Vmrgg/viewform?usp=pp_url&entry.1132314417=Hoffman2+Happy+Hour:+R+and+Python+(8/9/23) )
+
+:::{ style="text-align: center" }
+
+<img src="padfoot.jpeg"/ width="50%" height="50%">
+
+:::
+:::

@@ -1,25 +1,31 @@
-# SimpleRScriptWithNloptr.R
-
 library(nloptr)
 
-# Objective function to minimize
+# Objective function
 objective_function <- function(x) {
-  return(x^2 + 4*x + 4)
+  return((x - 3)^2)
 }
 
-# Initial guess
-x0 <- 10
+# Gradient of the objective function
+gradient_function <- function(x) {
+  return(2 * (x - 3))
+}
 
-# Use nloptr to optimize
+# Initial guess for the variable
+x0 <- 2  # Adjusted the initial guess
+
+# Using nloptr to solve the optimization problem
 result <- nloptr(
-  x0 = x0, 
-  eval_f = objective_function, 
-  algorithm = "NLOPT_LD_LBFGS", 
-  lb = -Inf, 
-  ub = Inf, 
-  opts = list("maxeval" = 100)
+  x0 = x0,
+  eval_f = objective_function,
+  eval_grad_f = gradient_function,  # Providing the gradient function
+  opts = list(
+    algorithm = "NLOPT_LD_MMA",  # Using a different algorithm
+    print_level = 0,  # No output
+    stopval = 1.0e-8,
+    ftol_rel = 1.0e-8  # Relative tolerance on function value
+  )
 )
 
-# Print results
-cat("Minimum value of f(x) is:", result$objective, "\n")
-cat("Optimal value of x is:", result$solution, "\n")
+# Displaying the result
+cat("Optimal value of x:", result$solution, "\n")
+cat("Minimum value of the objective function:", result$objective, "\n")

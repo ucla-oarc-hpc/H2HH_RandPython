@@ -1,4 +1,4 @@
-# Hoffman2 Happy Hour: R and Python
+# Hoffman2 Happy Hour: Python and R
 
 Charles Peterson, OARC
 
@@ -6,10 +6,10 @@ This Hoffman2 Happy Hour is designed to equip participants with the knowledge an
 
 View this workshop at
 
-- HTML version - [https://ucla-oarc-hpc.github.io/H2HH_RandPython)[https://ucla-oarc-hpc.github.io/H2HH_RandPython] 
+- HTML version - [https://ucla-oarc-hpc.github.io/H2HH_Python-R](https://ucla-oarc-hpc.github.io/H2HH_Python-R)
 
-- PDF version - RandPython.pdf
+- PDF version - Python-R.pdf
 
-- Quarto file - RandPython.qmd
+- Quarto file - Python-R.qmd
 
 For any questions, email cpeterson@oarc.ucla.edu
